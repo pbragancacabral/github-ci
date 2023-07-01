@@ -15,37 +15,30 @@ jobs:
           python-version: "3.9"
       - uses: pre-commit/action@v3.0.0
 
-  small-tests:
+  tests:
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10"]
+        test-type: ["small", "large"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: ${{ matrix.python-version }}
       - name: Install jobsim
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           poetry install
-      - name: run small-tests
-        run: poetry run pytest -s -v --junitxml=small_tests_results.xml tests/small
-      - uses: actions/upload-artifact @v3
+      - name: run tests
+        run: poetry run pytest -s -v --junitxml=${{ matrix.test-type }}_tests_results.xml tests/${{ matrix.test-type }}
+      - uses: actions/upload-artifact@v3
+        if: matrix.test-type == 'small'
         with:
           name: small_tests
           path: small_tests_results.xml
-  large-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-      - name: Install jobsim
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          poetry install
-      - name: run large-tests
-        run: poetry run pytest -s -v --junitxml=large_tests_results.xml tests/large
       - uses: actions/upload-artifact@v3
+        if: matrix.test-type == 'large'
         with:
           name: large_tests
           path: large_tests_results.xml
@@ -53,7 +46,7 @@ jobs:
   report_workflow:
     if: always()
     runs-on: ubuntu-latest
-    needs: [small-tests, large-tests]
+    needs: tests
     steps:
       - uses: uoboda-splunk/workflow-info-splunk-upload-action@v1
         with:
