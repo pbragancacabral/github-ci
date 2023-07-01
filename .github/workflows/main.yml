@@ -46,9 +46,9 @@ jobs:
       - name: run large-tests
         run: poetry run pytest -s -v --junitxml=large_tests_results.xml tests/large
       - uses: actions/upload-artifact@v3
-      with:
-        name: my-artifact
-        path: large_tests_results.xml
+        with:
+          name: my-artifact
+          path: large_tests_results.xml
 
   report_workflow:
     if: always()
