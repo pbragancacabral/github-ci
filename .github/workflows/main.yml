@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         test-type: ["small", "large"]
     runs-on: ubuntu-latest
     steps:
@@ -32,17 +32,23 @@ jobs:
           curl -sSL https://install.python-poetry.org | python3 -
           poetry install
       - name: run tests
-        run: poetry run pytest -s -v --junitxml=${{ matrix.test-type }}_tests_results.xml tests/${{ matrix.test-type }}
+        if: matrix.test-type == 'large' && (matrix.python-version == '3.9' || matrix.python-version == '3.10')
+        run: poetry run pytest -s -v --junitxml=${{ matrix.test-type }}_${{matrix.python-version}}_tests_results.xml tests/${{ matrix.test-type }}
       - uses: actions/upload-artifact@v3
         if: matrix.test-type == 'small'
         with:
           name: small_tests
-          path: small_tests_results.xml
+          path: |
+            ./
+            ./
+            !/**/*small*.xml
       - uses: actions/upload-artifact@v3
-        if: matrix.test-type == 'large'
         with:
           name: large_tests
-          path: large_tests_results.xml
+          path: |
+            ./
+            ./
+            !/**/*large*.xml
 
   report_workflow:
     if: always()
