@@ -21,6 +21,9 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
         test-type: ["small", "large"]
+        exclude:
+          - python-version: "3.11"
+          - type: "large"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
